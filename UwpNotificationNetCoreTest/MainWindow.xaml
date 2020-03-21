@@ -13,8 +13,11 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ListBox x:Name="ListBox" />
-        <Button Grid.Row="1" 
-                Content="Generate Notification" 
-                Click="OnGenerateNotification" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button Content="Create Notification (COM activation)" 
+                    Click="OnCreateNotificationForCom" />
+            <Button Content="Create Notification (protocol activation)" 
+                    Click="OnCreateNotificationForProtocol" />
+        </StackPanel>
     </Grid>
 </Window>

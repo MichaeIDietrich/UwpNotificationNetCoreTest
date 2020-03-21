@@ -37,6 +37,8 @@ namespace UwpNotificationNetCoreTest
         {
             RegisterApplicationId();
 
+            RegisterProtocolScheme();
+
             RegisterComServerInRegistry();
 
             var uuid = typeof(NotificationActivator).GUID;
@@ -56,12 +58,11 @@ namespace UwpNotificationNetCoreTest
 
         private static void RegisterComServerInRegistry()
         {
-            var uuid = typeof(NotificationActivator).GUID;
             var exePath = Process.GetCurrentProcess().MainModule.FileName;
 
             // here we define that our app is to be launched when the toast notification is activated
             // and the app is not running
-            var regString = $"SOFTWARE\\Classes\\CLSID\\{{{uuid}}}\\LocalServer32";
+            var regString = $"SOFTWARE\\Classes\\CLSID\\{{{Defines.ComServerGuid}}}\\LocalServer32";
 
             using (var key = Registry.CurrentUser.OpenSubKey(regString))
             {
@@ -75,19 +76,6 @@ namespace UwpNotificationNetCoreTest
             }
         }
 
-        public sealed class NotificationReceivedEventArgs : EventArgs
-        {
-            public NotificationReceivedEventArgs(string arguments, IReadOnlyDictionary<string, string> data)
-            {
-                Arguments = arguments;
-                Data = data;
-            }
-
-            public string Arguments { get; }
-
-            public IReadOnlyDictionary<string, string> Data { get; }
-        }
-
         private static void RegisterApplicationId()
         {
             // to make desktop notifications work for non packaged applications,
@@ -96,7 +84,7 @@ namespace UwpNotificationNetCoreTest
 
             // and we also fill in the GUID of our COM server for toast activation 
 
-            var comServerGuid = typeof(NotificationActivator).GUID;
+            var comServerGuid = Guid.Parse(Defines.ComServerGuid);
             var userPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 @"Microsoft\Windows\Start Menu\Programs", $"{Defines.AppId}.lnk");
 
@@ -109,12 +97,23 @@ namespace UwpNotificationNetCoreTest
                 && shortcut.AppUserModelToastActivatorCLSID == comServerGuid)
                 return;
 
-            shortcut.TargetPath = Process.GetCurrentProcess().MainModule.FileName;
-
+            shortcut.TargetPath = Defines.ExecutablePath;
             shortcut.AppUserModelID = Defines.AppId;
             shortcut.AppUserModelToastActivatorCLSID = comServerGuid;
 
             shortcut.Save(userPath);
+        }
+
+        private static void RegisterProtocolScheme()
+        {
+            using var key = Registry.CurrentUser.CreateSubKey($@"SOFTWARE\Classes\{Defines.ProtocolScheme}");
+
+            key.SetValue(null, $"URL:{Defines.ProtocolScheme}");
+            key.SetValue("URL Protocol", "");
+
+            using var commandKey = key.CreateSubKey(@"shell\open\command");
+
+            commandKey.SetValue("",  $"\"{Defines.ExecutablePath}\" \"%1\"");
         }
 
         [ComImport]
@@ -153,6 +152,19 @@ namespace UwpNotificationNetCoreTest
             {
                 return S_OK;
             }
+        }
+
+        public sealed class NotificationReceivedEventArgs : EventArgs
+        {
+            public NotificationReceivedEventArgs(string arguments, IReadOnlyDictionary<string, string> data)
+            {
+                Arguments = arguments;
+                Data = data;
+            }
+
+            public string Arguments { get; }
+
+            public IReadOnlyDictionary<string, string> Data { get; }
         }
 
         [ComImport]

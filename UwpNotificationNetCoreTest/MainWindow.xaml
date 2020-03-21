@@ -18,6 +18,8 @@
                     Click="OnCreateNotificationForCom" />
             <Button Content="Create Notification (protocol activation)" 
                     Click="OnCreateNotificationForProtocol" />
+            <Button Content="Clear all registrations and exit" 
+                    Click="OnClearAllAndExit" />
         </StackPanel>
     </Grid>
 </Window>

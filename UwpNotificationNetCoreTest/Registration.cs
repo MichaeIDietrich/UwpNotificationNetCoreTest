@@ -56,6 +56,21 @@ namespace UwpNotificationNetCoreTest
                 CoRevokeClassObject(_cookie);
         }
 
+        public static void ClearAll()
+        {
+            UnregisterApplication();
+
+            Registry.CurrentUser.DeleteSubKeyTree($"SOFTWARE\\Classes\\CLSID\\{{{Defines.ComServerGuid}}}");
+
+            Registry.CurrentUser.DeleteSubKeyTree($@"SOFTWARE\Classes\{Defines.ProtocolScheme}");
+
+            var userPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                @"Microsoft\Windows\Start Menu\Programs", $"{Defines.AppId}.lnk");
+
+            if (File.Exists(userPath))
+                File.Delete(userPath);
+        }
+
         private static void RegisterComServerInRegistry()
         {
             var exePath = Process.GetCurrentProcess().MainModule.FileName;

@@ -110,5 +110,14 @@ namespace UwpNotificationNetCoreTest
 
             ToastNotificationManager.CreateToastNotifier(Defines.AppId).Show(toast);
         }
+
+        private void OnClearAllAndExit(object sender, RoutedEventArgs e)
+        {
+            ToastNotificationManager.History.Clear(Defines.AppId);
+
+            Registration.ClearAll();
+
+            Close();
+        }
     }
 }
